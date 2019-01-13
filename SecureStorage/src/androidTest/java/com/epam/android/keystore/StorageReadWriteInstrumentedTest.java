@@ -19,12 +19,11 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 public class StorageReadWriteInstrumentedTest {
-    Context context;
-    SecureStorage storage;
+    private SecureStorage storage;
 
     @Before
     public void before() throws Exception {
-        context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getTargetContext();
         storage = new SecureStorage();
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             storage.setStrategy(new SafeStorageM(context));

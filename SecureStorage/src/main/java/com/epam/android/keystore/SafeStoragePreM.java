@@ -1,7 +1,9 @@
 package com.epam.android.keystore;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.security.KeyPairGeneratorSpec;
 import android.support.annotation.Nullable;
@@ -48,6 +50,7 @@ public class SafeStoragePreM implements SensitiveInfoModule {
         initKeyStore(context);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void initKeyStore(Context context) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, NoSuchProviderException, InvalidAlgorithmParameterException {
         keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
         keyStore.load(null);
