@@ -36,11 +36,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         try {
-            storage = new SecureStorage();
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                storage.setStrategy(new SafeStorageM(this));
-            } else
-                storage.setStrategy(new SafeStoragePreM(this));
+            storage = new SecureStorage(this);
         } catch (Exception e) {
             e.printStackTrace();
         }

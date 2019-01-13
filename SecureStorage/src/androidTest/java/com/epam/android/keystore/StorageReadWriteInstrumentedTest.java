@@ -22,13 +22,9 @@ public class StorageReadWriteInstrumentedTest {
     private SecureStorage storage;
 
     @Before
-    public void before() throws Exception {
+    public void before() {
         Context context = InstrumentationRegistry.getTargetContext();
-        storage = new SecureStorage();
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            storage.setStrategy(new SafeStorageM(context));
-        } else
-            storage.setStrategy(new SafeStoragePreM(context));
+        storage = new SecureStorage(context);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -39,7 +35,7 @@ public class StorageReadWriteInstrumentedTest {
     @Test
     public void shouldGetNullValueIfNotSet() throws Exception {
         String value = storage.get("blabla");
-        assertEquals(null, value);
+        assertNull(value);
     }
 
     @Test
@@ -80,25 +76,25 @@ public class StorageReadWriteInstrumentedTest {
         assertEquals("12093qqwoiejqow812312312123poqj[ 9wpe7nrpwiercwe9rucpn[w9e7rnc;lwiehr pb8ry", storage.get("key123"));
         storage.erase();
         assertNotEquals("12093qqwoiejqow812312312123poqj[ 9wpe7nrpwiercwe9rucpn[w9e7rnc;lwiehr pb8ry", storage.get("key123"));
-        assertEquals(null, storage.get("key123"));
+        assertNull(storage.get("key123"));
     }
 
     @Test
     public void shouldReturnNullIfNoKeyWithWhitespaces() throws Exception {
-        assertEquals(null, storage.get("bad key"));
+        assertNull(storage.get("bad key"));
     }
 
     @Test
     public void shouldSaveValueForKeyWithWhitespaces() throws Exception {
         storage.save("KEY", "@");
-        assertEquals(null, storage.get("bad key"));
+        assertNull(storage.get("bad key"));
     }
 
     @Test
     public void shouldClearForKey() throws Exception {
         storage.save("KEY", "@");
         storage.clear("KEY");
-        assertEquals(null, storage.get("KEY"));
+        assertNull(storage.get("KEY"));
     }
 
     @Test
@@ -108,6 +104,6 @@ public class StorageReadWriteInstrumentedTest {
         storage.clear("KEY");
         assertEquals("2", storage.get("KEY2"));
         storage.erase();
-        assertEquals(null, storage.get("KEY2"));
+        assertNull(storage.get("KEY2"));
     }
 }
