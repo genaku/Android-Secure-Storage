@@ -2,14 +2,16 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'maven-publish'
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
+//def keystorePropertiesFile = rootProject.file("keystore.properties")
 /*
 you should create file keystore.properties and fields like this
 username=Andre_Gus@epam.com
 password=""
  */
+/*
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+*/
 android {
     compileSdkVersion 27
     defaultConfig {
@@ -26,6 +28,7 @@ android {
         }
     }
 }
+/*
 publishing {
     publications {
         aar(MavenPublication) {
@@ -62,7 +65,7 @@ artifactory {
             publishPom = true
         }
     }
-}
+}*/
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
