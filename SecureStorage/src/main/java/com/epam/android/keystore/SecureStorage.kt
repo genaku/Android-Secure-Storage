@@ -19,7 +19,7 @@ class SecureStorage(context: Context) {
     }
 
     @Throws(SecureStorageException::class)
-    fun save(key: String, value: String) {
+    operator fun set(key: String, value: String) {
         versionStrategy?.save(key, value)
     }
 
