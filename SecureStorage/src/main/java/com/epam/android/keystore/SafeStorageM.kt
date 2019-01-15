@@ -8,26 +8,13 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.support.annotation.RequiresApi
 import android.util.Base64
-
+import com.epam.android.keystore.SecureStorage.Companion.ANDROID_KEY_STORE
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.security.InvalidAlgorithmParameterException
-import java.security.InvalidKeyException
-import java.security.KeyStore
-import java.security.KeyStoreException
-import java.security.NoSuchAlgorithmException
-import java.security.UnrecoverableEntryException
-import java.util.Arrays
-
-import javax.crypto.BadPaddingException
-import javax.crypto.Cipher
-import javax.crypto.IllegalBlockSizeException
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
+import java.security.*
+import java.util.*
+import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
-
-import com.epam.android.keystore.SecureStorage.Companion.ANDROID_KEY_STORE
-import com.epam.android.keystore.SecureStorage.Companion.KEY_ALIAS
 
 class SafeStorageM : SensitiveInfoModule {
 
@@ -35,20 +22,23 @@ class SafeStorageM : SensitiveInfoModule {
     private var cipher: Cipher
     private var preferences: SharedPreferences
     private lateinit var keyStore: KeyStore
+    private val keyAlias: String
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Throws(Exception::class)
-    constructor(context: Context) {
+    constructor(context: Context, keyAlias: String) {
+        this.keyAlias = keyAlias
         cipher = Cipher.getInstance(AESGCMNOPADDING)
-        secretKey = initSecretKey(KEY_ALIAS)
+        secretKey = initSecretKey(keyAlias)
         preferences = PreferenceManager.getDefaultSharedPreferences(context)
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Throws(Exception::class)
-    constructor(preferences: SharedPreferences) {
+    constructor(preferences: SharedPreferences, keyAlias: String) {
+        this.keyAlias = keyAlias
         cipher = Cipher.getInstance(AESGCMNOPADDING)
-        secretKey = initSecretKey(KEY_ALIAS)
+        secretKey = initSecretKey(keyAlias)
         this.preferences = preferences
     }
 
@@ -79,7 +69,7 @@ class SafeStorageM : SensitiveInfoModule {
 
     @Throws(KeyStoreException::class)
     override fun erase() {
-        keyStore.deleteEntry(KEY_ALIAS)
+        keyStore.deleteEntry(keyAlias)
     }
 
     @Throws(SecureStorageException::class)
@@ -124,7 +114,7 @@ class SafeStorageM : SensitiveInfoModule {
             val value = getPref(key)
             val iv = getByteArray(getPref(I_VECTOR + key))
             val ivParameterSpec = IvParameterSpec(iv)
-            val secretKeyEntry = keyStore.getEntry(KEY_ALIAS, null) as KeyStore.SecretKeyEntry?
+            val secretKeyEntry = keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry?
                     ?: return null
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.secretKey, ivParameterSpec)
             return if (value.isNullOrEmpty()) null else String(cipher.doFinal(Base64.decode(value, Base64.DEFAULT)), StandardCharsets.UTF_8)
@@ -150,7 +140,6 @@ class SafeStorageM : SensitiveInfoModule {
             e.printStackTrace()
             throw SecureStorageException("Error get value from the storage")
         }
-
     }
 
     private fun getByteArray(stringArray: String?): ByteArray? {

@@ -1,9 +1,5 @@
 package com.epam.android.keystore.demo;
 
-import com.epam.android.keystore.SafeStorageM;
-import com.epam.android.keystore.SafeStoragePreM;
-import com.epam.android.keystore.SecureStorage;
-import com.epam.android.keystore.SecureStorageException;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -11,6 +7,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.epam.android.keystore.SecureStorage;
+import com.epam.android.keystore.SecureStorageException;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     EditText etToBeStored;
 
     private SecureStorage storage;
-    private final String TEST_KEY = "com.epam.android.keystore.demo.TEST_KEY";
+    private final String TEST_KEY = "password";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         try {
-            storage = new SecureStorage(this);
+            storage = new SecureStorage(this, "myalias");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void saveValue(View view) throws SecureStorageException {
         if (storage != null) {
-            storage.save(TEST_KEY, etToBeStored.getText().toString());
+            storage.set(TEST_KEY, etToBeStored.getText().toString());
         }
     }
 

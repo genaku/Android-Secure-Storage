@@ -3,15 +3,15 @@ package com.epam.android.keystore
 import android.content.Context
 import java.security.KeyStoreException
 
-class SecureStorage(context: Context) {
+class SecureStorage(context: Context, keyAlias: String = KEY_ALIAS) {
 
     private var versionStrategy: SensitiveInfoModule? = null
 
     init {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            setStrategy(SafeStorageM(context))
+            setStrategy(SafeStorageM(context, keyAlias))
         } else
-            setStrategy(SafeStoragePreM(context))
+            setStrategy(SafeStoragePreM(context, keyAlias))
     }
 
     fun setStrategy(strategy: SensitiveInfoModule) {

@@ -11,7 +11,6 @@ import android.preference.PreferenceManager
 import android.security.KeyPairGeneratorSpec
 import android.util.Base64
 import com.epam.android.keystore.SecureStorage.Companion.ANDROID_KEY_STORE
-import com.epam.android.keystore.SecureStorage.Companion.KEY_ALIAS
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -26,7 +25,7 @@ import javax.crypto.NoSuchPaddingException
 import javax.security.auth.x500.X500Principal
 
 class SafeStoragePreM @Throws(InvalidAlgorithmParameterException::class, KeyStoreException::class, CertificateException::class, NoSuchAlgorithmException::class, IOException::class, NoSuchProviderException::class)
-constructor(context: Context) : SensitiveInfoModule {
+constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
 
     private lateinit var keyStore: KeyStore
 
@@ -42,14 +41,14 @@ constructor(context: Context) : SensitiveInfoModule {
         keyStore = KeyStore.getInstance(ANDROID_KEY_STORE)
         keyStore.load(null)
         // Generate the RSA key pairs
-        if (!keyStore.containsAlias(KEY_ALIAS)) {
+        if (!keyStore.containsAlias(keyAlias)) {
             // Generate a key pair for encryption
             val start = Calendar.getInstance()
             val end = Calendar.getInstance()
             end.add(Calendar.YEAR, 1)
             val spec = KeyPairGeneratorSpec.Builder(context)
-                    .setAlias(KEY_ALIAS)
-                    .setSubject(X500Principal("CN=$KEY_ALIAS, O=Android Authority , C=COMPANY"))
+                    .setAlias(keyAlias)
+                    .setSubject(X500Principal("CN=$keyAlias, O=Android Authority , C=COMPANY"))
                     .setSerialNumber(BigInteger.TEN)
                     .setStartDate(start.time)
                     .setEndDate(end.time)
@@ -63,7 +62,7 @@ constructor(context: Context) : SensitiveInfoModule {
     @Throws(SecureStorageException::class)
     override fun save(key: String, value: String) {
         try {
-            val privateKeyEntry = keyStore.getEntry(KEY_ALIAS, null) as KeyStore.PrivateKeyEntry
+            val privateKeyEntry = keyStore.getEntry(keyAlias, null) as KeyStore.PrivateKeyEntry
             // Encrypt the text
             val inputCipher = Cipher.getInstance(CIPHER_TYPE, CIPHER_PROVIDER)
             inputCipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.certificate.publicKey)
@@ -111,7 +110,7 @@ constructor(context: Context) : SensitiveInfoModule {
 
     @Throws(KeyStoreException::class)
     override fun erase() {
-        keyStore.deleteEntry(KEY_ALIAS)
+        keyStore.deleteEntry(keyAlias)
     }
 
     private fun getPref(key: String): String =
@@ -125,7 +124,7 @@ constructor(context: Context) : SensitiveInfoModule {
 
         val privateKeyEntry: KeyStore.PrivateKeyEntry?
         try {
-            privateKeyEntry = keyStore.getEntry(KEY_ALIAS, null) as KeyStore.PrivateKeyEntry? ?: return null
+            privateKeyEntry = keyStore.getEntry(keyAlias, null) as KeyStore.PrivateKeyEntry? ?: return null
 
             val cipher = Cipher.getInstance(CIPHER_TYPE, CIPHER_PROVIDER)
             cipher.init(Cipher.DECRYPT_MODE, privateKeyEntry.privateKey)
