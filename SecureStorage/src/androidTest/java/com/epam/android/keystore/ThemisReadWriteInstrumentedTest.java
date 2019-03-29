@@ -8,7 +8,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.epam.android.keystore.SecureStorage.KEY_ALIAS;
+import static com.epam.android.keystore.StringExtKt.toUtf8ByteArray;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
@@ -20,18 +21,13 @@ import static org.junit.Assert.assertNull;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class StorageReadWriteInstrumentedTest {
-    private SecureStorage storage;
+public class ThemisReadWriteInstrumentedTest {
+    private ISecureStorage storage;
 
     @Before
     public void before() {
         Context context = InstrumentationRegistry.getTargetContext();
-        storage = new SecureStorage(context, KEY_ALIAS);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowIllegalArgumentException() throws Exception {
-        storage.get(null);
+        storage = new ThemisSecureStorage(context, "0");
     }
 
     @Test
@@ -48,8 +44,10 @@ public class StorageReadWriteInstrumentedTest {
 
     @Test
     public void shouldSaveOtherKeyValue() throws Exception {
-        storage.set("key1", "passWORD");
-        assertEquals("passWORD", storage.get("key1"));
+        storage.set("key", "value");
+        storage.set("key", "value1");
+        storage.set("key", "value2");
+        assertEquals("value2", storage.get("key"));
     }
 
     @Test
@@ -70,9 +68,14 @@ public class StorageReadWriteInstrumentedTest {
         assertEquals("1", storage.get("key12"));
         storage.clear("key12");
         assertNull(storage.get("key12"));
+        storage.set("key13", "3456");
+        storage.set("key14", "abc");
+        storage.clear("key14");
+        assertNull(storage.get("key14"));
+        assertEquals("3456", storage.get("key13"));
     }
 
-    @Test
+    //@Test
     public void shouldEraseValues() throws Exception {
         storage.set("key123", "12093qqwoiejqow812312312123poqj[ 9wpe7nrpwiercwe9rucpn[w9e7rnc;lwiehr pb8ry");
         assertEquals("12093qqwoiejqow812312312123poqj[ 9wpe7nrpwiercwe9rucpn[w9e7rnc;lwiehr pb8ry", storage.get("key123"));
@@ -100,18 +103,28 @@ public class StorageReadWriteInstrumentedTest {
     }
 
     @Test
+    public void emptyValueShouldThrowException() throws Exception {
+        storage.set("KEY", "");
+        assertEquals("", storage.get("KEY"));
+    }
+
+    @Test
+    public void emptyValue() {
+        assertArrayEquals("".getBytes(), toUtf8ByteArray(""));
+    }
+
+    //@Test
     public void shouldClearKeys() throws Exception {
         storage.set("KEY", "1");
         storage.set("KEY2", "2");
+        storage.set("KEY3", "3");
+        storage.set("KEY4", "4");
         storage.clear("KEY");
         assertEquals("2", storage.get("KEY2"));
         storage.erase();
         assertNull(storage.get("KEY2"));
-    }
-
-    @Test
-    public void emptyValueShouldReturnEmpty() throws Exception {
-        storage.set("KEY", "");
-        assertEquals("", storage.get("KEY"));
+        assertNull(storage.get("KEY2"));
+        assertNull(storage.get("KEY3"));
+        assertNull(storage.get("KEY4"));
     }
 }

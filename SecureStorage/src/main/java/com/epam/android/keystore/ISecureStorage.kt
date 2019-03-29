@@ -2,10 +2,10 @@ package com.epam.android.keystore
 
 import java.security.KeyStoreException
 
-interface SensitiveInfoModule {
+interface ISecureStorage {
 
     @Throws(SecureStorageException::class)
-    fun save(key: String, value: String)
+    fun set(key: String, value: String)
 
     fun clear(key: String)
 
@@ -13,5 +13,5 @@ interface SensitiveInfoModule {
     fun erase()
 
     @Throws(SecureStorageException::class)
-    operator fun get(key: String?): String?
+    operator fun get(key: String): String?
 }

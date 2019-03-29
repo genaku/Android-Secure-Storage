@@ -24,8 +24,8 @@ import javax.crypto.CipherOutputStream
 import javax.crypto.NoSuchPaddingException
 import javax.security.auth.x500.X500Principal
 
-class SafeStoragePreM @Throws(InvalidAlgorithmParameterException::class, KeyStoreException::class, CertificateException::class, NoSuchAlgorithmException::class, IOException::class, NoSuchProviderException::class)
-constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
+class SecureStoragePreM @Throws(InvalidAlgorithmParameterException::class, KeyStoreException::class, CertificateException::class, NoSuchAlgorithmException::class, IOException::class, NoSuchProviderException::class)
+constructor(context: Context, val keyAlias: String) : ISecureStorage {
 
     private lateinit var keyStore: KeyStore
 
@@ -60,7 +60,7 @@ constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
     }
 
     @Throws(SecureStorageException::class)
-    override fun save(key: String, value: String) {
+    override fun set(key: String, value: String) {
         try {
             val privateKeyEntry = keyStore.getEntry(keyAlias, null) as KeyStore.PrivateKeyEntry
             // Encrypt the text
@@ -69,7 +69,7 @@ constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
 
             val outputStream = ByteArrayOutputStream()
             val cipherOutputStream = CipherOutputStream(outputStream, inputCipher)
-            cipherOutputStream.write(value.toByteArray(charset("UTF-8")))
+            cipherOutputStream.write(value.toUtf8ByteArray())
             cipherOutputStream.close()
 
             val cryptoText = outputStream.toByteArray()
@@ -78,25 +78,25 @@ constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
             outputStream.close()
         } catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage: No such algorithm $CIPHER_TYPE")
         } catch (e: KeyStoreException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: InvalidKeyException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: IOException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: NoSuchPaddingException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: UnrecoverableEntryException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: NoSuchProviderException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         }
     }
 
@@ -117,9 +117,9 @@ constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
             preferences.getString(key, "")!!
 
     @Throws(SecureStorageException::class)
-    override fun get(key: String?): String? {
-        if (key.isNullOrEmpty()) {
-            throw IllegalArgumentException("Key should not be null or empty")
+    override fun get(key: String): String? {
+        if (key.isEmpty()) {
+            throw IllegalArgumentException("Key should not be empty")
         }
 
         val privateKeyEntry: KeyStore.PrivateKeyEntry?
@@ -132,10 +132,10 @@ constructor(context: Context, val keyAlias: String) : SensitiveInfoModule {
             val value = getPref(key)
             if (value.isEmpty()) return null
             val bytes = getBytes(cipher, value)
-            return String(bytes, Charsets.UTF_8)
+            return String(bytes, UTF8_CHARSET)
         } catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
-            throw SecureStorageException("Error get value from the storage")
+            throw SecureStorageException("Error get value from the storage: No such algorithm $CIPHER_TYPE")
         } catch (e: KeyStoreException) {
             e.printStackTrace()
             throw SecureStorageException("Error get value from the storage")

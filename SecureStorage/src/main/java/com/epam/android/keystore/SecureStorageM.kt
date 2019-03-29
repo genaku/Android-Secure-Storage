@@ -10,37 +10,18 @@ import android.support.annotation.RequiresApi
 import android.util.Base64
 import com.epam.android.keystore.SecureStorage.Companion.ANDROID_KEY_STORE
 import java.io.IOException
-import java.nio.charset.StandardCharsets
 import java.security.*
 import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
 
-class SafeStorageM : SensitiveInfoModule {
+@RequiresApi(api = Build.VERSION_CODES.M)
+class SecureStorageM(context: Context, private val keyAlias: String) : ISecureStorage {
 
-    private var secretKey: SecretKey
-    private var cipher: Cipher
-    private var preferences: SharedPreferences
+    private var secretKey: SecretKey = initSecretKey(keyAlias)
+    private var cipher: Cipher = Cipher.getInstance(CIPHER_TYPE)
+    private var preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
     private lateinit var keyStore: KeyStore
-    private val keyAlias: String
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    @Throws(Exception::class)
-    constructor(context: Context, keyAlias: String) {
-        this.keyAlias = keyAlias
-        cipher = Cipher.getInstance(AESGCMNOPADDING)
-        secretKey = initSecretKey(keyAlias)
-        preferences = PreferenceManager.getDefaultSharedPreferences(context)
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    @Throws(Exception::class)
-    constructor(preferences: SharedPreferences, keyAlias: String) {
-        this.keyAlias = keyAlias
-        cipher = Cipher.getInstance(AESGCMNOPADDING)
-        secretKey = initSecretKey(keyAlias)
-        this.preferences = preferences
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Throws(Exception::class)
@@ -73,25 +54,25 @@ class SafeStorageM : SensitiveInfoModule {
     }
 
     @Throws(SecureStorageException::class)
-    override fun save(key: String, value: String) {
+    override fun set(key: String, value: String) {
         try {
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
             putPref(I_VECTOR + key, Arrays.toString(cipher.iv))
-            val encryption = cipher.doFinal(value.toByteArray(charset("UTF-8")))
+            val encryption = cipher.doFinal(value.toUtf8ByteArray())
             val encryptedBase64Encoded = Base64.encodeToString(encryption, Base64.DEFAULT)
             putPref(key, encryptedBase64Encoded)
         } catch (e: InvalidKeyException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: IOException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: BadPaddingException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         } catch (e: IllegalBlockSizeException) {
             e.printStackTrace()
-            throw SecureStorageException("Error save or cypher value to the storage")
+            throw SecureStorageException("Error sa ve or cypher value to the storage")
         }
     }
 
@@ -101,9 +82,9 @@ class SafeStorageM : SensitiveInfoModule {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Throws(SecureStorageException::class)
-    override fun get(key: String?): String? {
-        if (key.isNullOrEmpty()) {
-            throw IllegalArgumentException("Key should not be null or empty")
+    override fun get(key: String): String? {
+        if (key.isEmpty()) {
+            throw IllegalArgumentException("Key should not be empty")
         }
 
         if (!isSet(I_VECTOR + key) || !isSet(key)) {
@@ -117,7 +98,7 @@ class SafeStorageM : SensitiveInfoModule {
             val secretKeyEntry = keyStore.getEntry(keyAlias, null) as KeyStore.SecretKeyEntry?
                     ?: return null
             cipher.init(Cipher.DECRYPT_MODE, secretKeyEntry.secretKey, ivParameterSpec)
-            return if (value.isNullOrEmpty()) null else String(cipher.doFinal(Base64.decode(value, Base64.DEFAULT)), StandardCharsets.UTF_8)
+            return if (value.isNullOrEmpty()) null else String(cipher.doFinal(Base64.decode(value, Base64.DEFAULT)), UTF8_CHARSET)
         } catch (e: InvalidKeyException) {
             e.printStackTrace()
             throw SecureStorageException("Error get value from the storage")
@@ -158,12 +139,12 @@ class SafeStorageM : SensitiveInfoModule {
     private fun getPref(key: String): String? =
             preferences.getString(key, "")
 
-    private fun putPref(key: String, value: String) {
-        preferences.edit().putString(key, value).apply()
-    }
+    private fun putPref(key: String, value: String) =
+            preferences.edit().putString(key, value).apply()
+
 
     companion object {
-        private const val AESGCMNOPADDING = "AES/CBC/PKCS7Padding"
+        private const val CIPHER_TYPE = "AES/CBC/PKCS7Padding"
         private const val I_VECTOR = "valueV"
     }
 }

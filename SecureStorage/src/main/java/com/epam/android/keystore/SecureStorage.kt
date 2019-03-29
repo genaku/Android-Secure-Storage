@@ -5,26 +5,26 @@ import java.security.KeyStoreException
 
 class SecureStorage(context: Context, keyAlias: String = KEY_ALIAS) {
 
-    private var versionStrategy: SensitiveInfoModule? = null
+    private var versionStrategy: ISecureStorage? = null
 
     init {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            setStrategy(SafeStorageM(context, keyAlias))
+            setStrategy(SecureStorageM(context, keyAlias))
         } else
-            setStrategy(SafeStoragePreM(context, keyAlias))
+            setStrategy(SecureStoragePreM(context, keyAlias))
     }
 
-    fun setStrategy(strategy: SensitiveInfoModule) {
+    fun setStrategy(strategy: ISecureStorage) {
         this.versionStrategy = strategy
     }
 
     @Throws(SecureStorageException::class)
     operator fun set(key: String, value: String) {
-        versionStrategy?.save(key, value)
+        versionStrategy?.set(key, value)
     }
 
     @Throws(SecureStorageException::class)
-    operator fun get(key: String?): String? {
+    operator fun get(key: String): String? {
         return versionStrategy?.get(key)
     }
 
