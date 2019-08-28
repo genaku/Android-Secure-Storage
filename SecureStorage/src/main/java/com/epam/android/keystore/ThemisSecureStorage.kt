@@ -13,9 +13,7 @@ class ThemisSecureStorage(context: Context, private val suffix: String = "") : I
     private var preferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     override fun set(key: String, value: String) {
-        if (key.isBlank()) {
-            throw IllegalArgumentException("Key should not be empty")
-        }
+        require(key.isNotBlank()) { "Key should not be empty" }
 
         val storeKey = prepareKey(key)
 
@@ -36,9 +34,7 @@ class ThemisSecureStorage(context: Context, private val suffix: String = "") : I
     }
 
     override fun get(key: String): String? {
-        if (key.isBlank()) {
-            throw IllegalArgumentException("Key should not be empty")
-        }
+        require(key.isNotBlank()) { "Key should not be empty" }
 
         val storeKey = prepareKey(key)
 

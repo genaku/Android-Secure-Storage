@@ -83,9 +83,7 @@ class SecureStorageM(context: Context, private val keyAlias: String) : ISecureSt
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Throws(SecureStorageException::class)
     override fun get(key: String): String? {
-        if (key.isEmpty()) {
-            throw IllegalArgumentException("Key should not be empty")
-        }
+        require(key.isNotEmpty()) { "Key should not be empty" }
 
         if (!isSet(I_VECTOR + key) || !isSet(key)) {
             return null

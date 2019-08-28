@@ -118,9 +118,7 @@ constructor(context: Context, val keyAlias: String) : ISecureStorage {
 
     @Throws(SecureStorageException::class)
     override fun get(key: String): String? {
-        if (key.isEmpty()) {
-            throw IllegalArgumentException("Key should not be empty")
-        }
+        require(key.isNotEmpty()) { "Key should not be empty" }
 
         val privateKeyEntry: KeyStore.PrivateKeyEntry?
         try {
