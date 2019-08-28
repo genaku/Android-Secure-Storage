@@ -8,8 +8,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.epam.android.keystore.SecureStorage;
+import com.epam.android.keystore.ISecureStorage;
 import com.epam.android.keystore.SecureStorageException;
+import com.epam.android.keystore.ThemisSecureStorage;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -25,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.et_value_to_store)
     EditText etToBeStored;
 
-    private SecureStorage storage;
+    private ISecureStorage storage;
     private final String TEST_KEY = "password";
 
     @Override
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         try {
-            storage = new SecureStorage(this, "myalias");
+            storage = new ThemisSecureStorage(this, "0");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -58,5 +59,4 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         tvStoredValue.setText(prefs.getString(TEST_KEY, ""));
     }
-
 }
